@@ -1,0 +1,7 @@
+order_id,customer_id,status,ordered_at,estimated_delivery_at,delivered_at
+O001,C001,delivered,2025-01-01,2025-01-05,2025-01-04
+O002,C002,delivered,2025-01-10,2025-01-15,2025-01-17
+O003,C001,delivered,2025-02-01,2025-02-05,2025-02-05
+O004,C003,cancelled,2025-02-02,2025-02-07,
+O005,C004,shipped,2025-02-03,2025-02-08,
+O006,C002,delivered,2025-02-10,2025-02-15,2025-02-14
