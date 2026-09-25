@@ -39,6 +39,32 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(float(rows['North']['late_delivery_pct']), 50)
         self.assertEqual(float(self.report('repeat_customers')[0]['repeat_customer_pct']), 100)
 
+    def test_category_totals_and_units_match_delivered_sales(self):
+        rows = self.report('category_sales')
+        actual = [
+            (r['category'], int(r['units']), int(r['delivered_orders']),
+             float(r['merchandise_value']), int(r['value_rank']))
+            for r in rows
+        ]
+        self.assertEqual(actual, [
+            ('Electronics', 2, 2, 200.0, 1),
+            ('Home', 1, 1, 50.0, 2),
+            ('Books', 3, 2, 45.0, 3),
+        ])
+        # An order spanning categories contributes once to each category.
+        # Merchandise value is additive; category order counts are not.
+        self.assertEqual(sum(float(r['merchandise_value']) for r in rows), 295.0)
+
+    def test_equal_category_values_share_rank(self):
+        path = self.source / 'order_items.csv'
+        path.write_text(path.read_text().replace('O002,1,P002,1,5000',
+                                                 'O002,1,P002,1,4500'))
+        rows = self.report('category_sales')
+        self.assertEqual(
+            [(r['category'], int(r['value_rank'])) for r in rows],
+            [('Electronics', 1), ('Books', 2), ('Home', 2)],
+        )
+
     def test_duplicate_failure_preserves_existing_database(self):
         build_database(self.source, self.db)
         original = self.db.read_bytes()
