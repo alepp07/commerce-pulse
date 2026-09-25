@@ -59,6 +59,27 @@ Failed validation preserves the existing database. Run one pipeline process at
 a time; the report files are generated after database validation and are not
 published as an atomic bundle.
 
+## Troubleshooting imports
+
+| Error or symptom | What to check |
+|---|---|
+| `FileNotFoundError` for an input CSV | The input folder must contain `customers.csv`, `products.csv`, `orders.csv`, and `order_items.csv`. Relative `--input` paths are resolved from your current terminal directory. |
+| `expected columns` | Match the sample header names **and their order**. Extra columns are not accepted. |
+| `missing required value` or `malformed CSV row` | Check the reported file and line for blank required fields, missing columns, or unquoted commas. |
+| `UNIQUE constraint failed` | Check for duplicate customer, product, or order IDs, or duplicate `(order_id, item_id)` pairs. Investigate duplicates before removing them. |
+| `FOREIGN KEY constraint failed` | Each order must reference an existing customer; each item must reference an existing order and product. |
+| `status and delivery date disagree` | Delivered orders require an actual delivery date. Shipped and cancelled orders must leave that field blank. |
+| `delivery precedes purchase` or `estimate precedes purchase` | Check the source dates and mapping. Do not swap dates merely to pass validation. |
+| `orders have no items` | Every order must have at least one corresponding row in `order_items.csv`. |
+
+Use dates in `YYYY-MM-DD` format and integer minor units for prices:
+for example, `1250` means 12.50, whereas `12.50` is not a valid
+`unit_price_cents` input.
+
+After correcting the source, rerun the same command. A failed validation leaves
+the previous database in place, so existing reports may still describe an older
+successful run. Confirm the terminal reports success before refreshing Power BI.
+
 ## Model and metric design
 
 Customers have many orders. Orders have many items, and each item references a
