@@ -30,3 +30,55 @@ to verify manually. Never present this fixture as Malaysian market data.
 
 For a source with additional statuses or timestamp fields, create an explicit
 adapter with documented mappings rather than discarding unsupported records.
+
+## Table relationships
+
+```mermaid
+erDiagram
+    customers ||--o{ orders : places
+    orders ||--|{ order_items : contains
+    products ||--o{ order_items : appears_in
+    customers {
+        TEXT customer_id PK
+        TEXT region
+    }
+    orders {
+        TEXT order_id PK
+        TEXT customer_id FK
+        TEXT status
+    }
+    order_items {
+        TEXT order_id PK, FK
+        INTEGER item_id PK
+        TEXT product_id FK
+        INTEGER quantity
+        INTEGER unit_price_cents
+    }
+    products {
+        TEXT product_id PK
+        TEXT category
+    }
+```
+
+The diagram highlights keys and analysis fields; the table above lists every
+input column. Customers and products can exist without orders or items.
+Every order must have at least one item: the loader checks this rule after
+insertion, while SQLite foreign keys enforce the references.
+
+## Choosing the correct row level
+
+Use `order_summary` for order counts, average order value, and delivery
+metrics. It aggregates item values before joining them to orders, leaving
+one row per order.
+
+Use `order_items` joined to `products` for category and unit analysis.
+The item key is the pair `(order_id, item_id)`; `item_id` alone is not unique
+across orders.
+
+For example, an order containing two item rows becomes two rows when joined
+directly to `order_items`. Counting those joined rows would count the order
+twice. A distinct order count fixes that count, but averaging delivery days
+over the joined rows still overweights orders with more items. Calculate
+delivery averages from `order_summary` instead.
+
+Source of truth: [the SQL schema](../sql/schema.sql).
