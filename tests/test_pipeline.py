@@ -91,6 +91,41 @@ class PipelineTests(unittest.TestCase):
         path.write_text(path.read_text().replace('2025-02', '2025-03'))
         self.assertEqual(self.report('monthly_sales')[1]['month_over_month_pct'], '')
 
+    def test_no_delivered_orders_exports_empty_reports_and_undefined_rate(self):
+        path = self.source / 'orders.csv'
+        with path.open(newline='', encoding='utf-8') as handle:
+            reader = csv.DictReader(handle)
+            fields = reader.fieldnames
+            rows = list(reader)
+        for row in rows:
+            row['status'] = 'shipped'
+            row['delivered_at'] = ''
+        with path.open('w', newline='', encoding='utf-8') as handle:
+            writer = csv.DictWriter(handle, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+
+        build_database(self.source, self.db)
+        output = self.root / 'reports'
+        export_reports(self.db, output)
+        for name in ('monthly_sales', 'category_sales', 'delivery_performance'):
+            with self.subTest(report=name):
+                with (output / f'{name}.csv').open(newline='') as handle:
+                    reader = csv.DictReader(handle)
+                    self.assertTrue(reader.fieldnames)
+                    self.assertEqual(list(reader), [])
+        with (output / 'repeat_customers.csv').open(newline='') as handle:
+            self.assertEqual(list(csv.DictReader(handle)), [{
+                'purchasing_customers': '0',
+                'repeat_customers': '0',
+                'repeat_customer_pct': '',
+            }])
+        with (output / 'order_summary.csv').open(newline='') as handle:
+            exported = list(csv.DictReader(handle))
+        self.assertEqual(len(exported), len(rows))
+        self.assertTrue(all(row['is_late'] == '' and row['delivery_days'] == ''
+                            for row in exported))
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
