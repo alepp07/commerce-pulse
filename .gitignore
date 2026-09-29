@@ -9,3 +9,9 @@ artifacts/
 data/raw/
 *.pbix
 .DS_Store
+
+# Generated SQLite databases, including custom output directories
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
