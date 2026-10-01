@@ -105,9 +105,22 @@ def export_reports(database, output):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--input', type=Path, default=ROOT / 'data/sample')
-    parser.add_argument('--output', type=Path, default=ROOT / 'artifacts')
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=('Relative paths are resolved from your current working directory. '
+                'Input column definitions: docs/data_dictionary.md.'),
+    )
+    parser.add_argument(
+        '--input', type=Path, default=ROOT / 'data/sample', metavar='DIR',
+        help=('Folder containing customers.csv, products.csv, orders.csv, '
+              'and order_items.csv; the default uses synthetic demo data'),
+    )
+    parser.add_argument(
+        '--output', type=Path, default=ROOT / 'artifacts', metavar='DIR',
+        help=('Folder for commerce.sqlite, CSV reports, and run_manifest.json; '
+              'existing generated files are replaced on rerun'),
+    )
     args = parser.parse_args()
     # Avoid overwriting user input by accidentally exporting into the source folder.
     if args.input.resolve() == args.output.resolve():
