@@ -3,7 +3,7 @@ import argparse
 import csv
 import json
 import os
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -128,7 +128,9 @@ def main():
     database = args.output / 'commerce.sqlite'
     counts = build_database(args.input, database)
     export_reports(database, args.output)
-    manifest = {'source': str(args.input.resolve()),
+    # Report generation time, not the source dataset's extraction time.
+    manifest = {'generated_at_utc': datetime.now(timezone.utc).isoformat(),
+                'source': str(args.input.resolve()),
                 'synthetic_sample': args.input.resolve() == (ROOT / 'data/sample').resolve(),
                 'loaded_rows': counts, 'reports': REPORTS + ['order_summary']}
     (args.output / 'run_manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
