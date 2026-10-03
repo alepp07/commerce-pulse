@@ -34,7 +34,12 @@ def read_rows(folder, table):
                 dates = {}
                 for key in ('ordered_at', 'estimated_delivery_at', 'delivered_at'):
                     if row[key]:
-                        parsed = date.fromisoformat(row[key])
+                        try:
+                            parsed = date.fromisoformat(row[key])
+                        except ValueError as exc:
+                            raise ValueError(
+                                f'{table}:{line}: {key} must be a valid YYYY-MM-DD date'
+                            ) from exc
                         if parsed.isoformat() != row[key]:
                             raise ValueError(f'{table}:{line}: use YYYY-MM-DD dates')
                         dates[key] = parsed
@@ -47,7 +52,12 @@ def read_rows(folder, table):
                 row['delivered_at'] = row['delivered_at'] or None
             if table == 'order_items':
                 for key in ('item_id', 'quantity', 'unit_price_cents'):
-                    row[key] = int(row[key])
+                    try:
+                        row[key] = int(row[key])
+                    except ValueError as exc:
+                        raise ValueError(
+                            f'{table}:{line}: {key} must be an integer'
+                        ) from exc
             rows.append(tuple(row[key] for key in COLUMNS[table]))
         if not rows:
             raise ValueError(f'{table}: no data rows')
