@@ -126,6 +126,34 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(all(row['is_late'] == '' and row['delivery_days'] == ''
                             for row in exported))
 
+    def test_zero_value_month_growth_boundaries(self):
+        path = self.source / 'order_items.csv'
+        with path.open(newline='', encoding='utf-8') as handle:
+            reader = csv.DictReader(handle)
+            fields = reader.fieldnames
+            original = list(reader)
+        cases = [
+            ({'O001', 'O002'}, [0.0, 115.0], ''),
+            ({'O003', 'O006'}, [180.0, 0.0], '-100.0'),
+        ]
+        for free_orders, expected_values, expected_growth in cases:
+            with self.subTest(free_orders=sorted(free_orders)):
+                rows = [dict(row) for row in original]
+                for row in rows:
+                    if row['order_id'] in free_orders:
+                        row['unit_price_cents'] = '0'
+                with path.open('w', newline='', encoding='utf-8') as handle:
+                    writer = csv.DictWriter(handle, fieldnames=fields)
+                    writer.writeheader()
+                    writer.writerows(rows)
+                report = self.report('monthly_sales')
+                self.assertEqual([r['month'] for r in report], ['2025-01', '2025-02'])
+                self.assertEqual([int(r['delivered_orders']) for r in report], [2, 2])
+                self.assertEqual([float(r['merchandise_value']) for r in report],
+                                 expected_values)
+                self.assertEqual(report[0]['month_over_month_pct'], '')
+                self.assertEqual(report[1]['month_over_month_pct'], expected_growth)
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
