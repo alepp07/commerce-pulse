@@ -28,8 +28,14 @@ def read_rows(folder, table):
             if None in row or any(v is None for v in row.values()):
                 raise ValueError(f'{table}:{line}: malformed CSV row')
             row = {key: value.strip() for key, value in row.items()}
-            if any(not value for key, value in row.items() if key != 'delivered_at'):
-                raise ValueError(f'{table}:{line}: missing required value')
+            missing_fields = [
+                key for key, value in row.items()
+                if key != 'delivered_at' and not value
+            ]
+            if missing_fields:
+                raise ValueError(
+                    f'{table}:{line}: missing required value in {", ".join(missing_fields)}'
+                )
             if table == 'orders':
                 dates = {}
                 for key in ('ordered_at', 'estimated_delivery_at', 'delivered_at'):
