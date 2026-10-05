@@ -42,7 +42,7 @@ The pipeline creates these local files in `artifacts/`:
 | `delivery_performance.csv` | Late delivery rate and average delivery time by region |
 | `repeat_customers.csv` | Repeat purchase rate across the observation window |
 | `order_summary.csv` | One row per order, ready for Power BI |
-| `run_manifest.json` | Input location, row counts, and sample-data flag |
+| `run_manifest.json` | UTC generation time, input location, row counts, and sample-data flag |
 
 To load your own data, prepare the four CSVs using the exact column contract
 in [the data dictionary](docs/data_dictionary.md), then run:
@@ -58,6 +58,30 @@ Each successful run rebuilds the database; it does not append duplicate records.
 Failed validation preserves the existing database. Run one pipeline process at
 a time; the report files are generated after database validation and are not
 published as an atomic bundle.
+
+## Check a report run
+
+After the pipeline finishes successfully, inspect its manifest before refreshing
+a dashboard:
+
+```bash
+python -m json.tool artifacts/run_manifest.json
+```
+
+Use your chosen output folder if you passed a different `--output` path.
+
+| Field | What it tells you |
+|---|---|
+| `generated_at_utc` | When report generation finished, in UTC; this is not the source data's extraction date. |
+| `source` | The absolute input folder used for the run. |
+| `loaded_rows` | Validated row counts for each of the four source tables; compare these with your expected input counts. |
+| `reports` | Names of the generated CSV reports, without file extensions. |
+| `synthetic_sample` | Whether the input path matches the bundled sample folder. A copied sample can produce `false`; this flag does not verify real-world provenance. |
+
+The manifest is written after report export. If a run fails, an older manifest
+can remain, and an export failure can leave a mixture of old and new report
+files. Confirm successful completion and check the timestamp before using the
+outputs. Track the source extraction date separately when loading real data.
 
 ## Troubleshooting imports
 
