@@ -106,7 +106,9 @@ def build_database(folder, database):
 def export_reports(database, output):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(database)
+    # Reports must read an existing database, never create or modify one.
+    database_uri = Path(database).resolve().as_uri() + '?mode=ro'
+    connection = sqlite3.connect(database_uri, uri=True)
     try:
         queries = {name: (ROOT / f'sql/{name}.sql').read_text() for name in REPORTS}
         queries['order_summary'] = 'SELECT * FROM order_summary ORDER BY order_id'
