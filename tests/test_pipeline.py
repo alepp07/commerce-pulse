@@ -154,6 +154,28 @@ class PipelineTests(unittest.TestCase):
                 self.assertEqual(report[0]['month_over_month_pct'], '')
                 self.assertEqual(report[1]['month_over_month_pct'], expected_growth)
 
+    def test_export_missing_database_does_not_create_file(self):
+        with self.assertRaises(sqlite3.OperationalError):
+            export_reports(self.db, self.root / 'reports')
+        self.assertFalse(self.db.exists())
+        self.assertEqual(list((self.root / 'reports').glob('*.csv')), [])
+
+    def test_export_special_character_path_preserves_database(self):
+        database = self.root / 'sales # 100%.sqlite'
+        build_database(self.source, database)
+        original = database.read_bytes()
+        output = self.root / 'reports'
+        export_reports(str(database), output)
+        self.assertEqual(database.read_bytes(), original)
+        with (output / 'monthly_sales.csv').open(newline='', encoding='utf-8') as handle:
+            rows = list(csv.DictReader(handle))
+        self.assertEqual([float(row['merchandise_value']) for row in rows], [180, 115])
+        self.assertEqual(
+            {path.name for path in output.glob('*.csv')},
+            {'monthly_sales.csv', 'category_sales.csv', 'delivery_performance.csv',
+             'repeat_customers.csv', 'order_summary.csv'},
+        )
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
