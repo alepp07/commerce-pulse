@@ -24,7 +24,9 @@ def read_rows(folder, table):
         if reader.fieldnames != COLUMNS[table]:
             raise ValueError(f'{table}: expected columns {COLUMNS[table]}')
         rows = []
-        for line, row in enumerate(reader, 2):
+        for row in reader:
+            # Physical ending line of the record, including blanks and quoted newlines.
+            line = reader.line_num
             if None in row or any(v is None for v in row.values()):
                 raise ValueError(f'{table}:{line}: malformed CSV row')
             row = {key: value.strip() for key, value in row.items()}
