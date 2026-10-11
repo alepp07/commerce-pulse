@@ -39,6 +39,18 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(float(rows['North']['late_delivery_pct']), 50)
         self.assertEqual(float(self.report('repeat_customers')[0]['repeat_customer_pct']), 100)
 
+    def test_repeat_rate_counts_customers_with_delivered_orders_only(self):
+        path = self.source / 'orders.csv'
+        path.write_text(path.read_text().replace('O003,C001,delivered',
+                                                 'O003,C003,delivered'))
+        # C001 and C003 each have one delivery; C002 has two.
+        # C003's cancelled order is not a repeat, and C004 is shipped-only.
+        self.assertEqual(self.report('repeat_customers'), [{
+            'purchasing_customers': '3',
+            'repeat_customers': '1',
+            'repeat_customer_pct': '33.33',
+        }])
+
     def test_category_totals_and_units_match_delivered_sales(self):
         rows = self.report('category_sales')
         actual = [
