@@ -45,7 +45,27 @@ rows. Their values will not respond to order-level date or region slicers.
 Label them **full dataset** or keep them on separate pages. A later star model
 will support consistent interactive filtering across all pages.
 
-Validate January value = 180 and February value = 115 using the fixture.
+## Validate the sample dashboard
+
+Use the bundled synthetic data and clear all filters first. The four measures
+above should produce these values:
+
+| Filter on Orders[ordered_at] | Delivered Orders | Delivered Merchandise Value | Average Order Value | Late Delivery Rate |
+|---|---:|---:|---:|---:|
+| All dates | 4 | 295.00 | 73.75 | 25% |
+| January 2025 | 2 | 180.00 | 90.00 | 50% |
+| February 2025 | 2 | 115.00 | 57.50 | 0% |
+
+Values use demo currency units. Apply the month filter to the `Orders` table
+to check that all four cards respond together. These expectations are fixture
+checks, not business findings.
+
+The imported `Orders` table should contain six rows, including the shipped
+and cancelled orders; the measures count only the four delivered orders.
+If a delivered-order card shows six, check that it uses `Delivered Orders`
+rather than an unfiltered row count. If the value card shows 29,500, check the
+division by 100 in the merchandise-value measure.
+
 The SQL growth export stores percentage points (for example -36.11), whereas
 the DAX rate is a fraction (0.5). Do not apply percentage formatting directly
 to the SQL percentage-point columns without dividing by 100.
