@@ -86,6 +86,34 @@ class PipelineTests(unittest.TestCase):
             build_database(self.source, self.db)
         self.assertEqual(original, self.db.read_bytes())
 
+    def test_malformed_csv_quoting_preserves_existing_database(self):
+        build_database(self.source, self.db)
+        original = self.db.read_bytes()
+        path = self.source / 'products.csv'
+        for row in ('P001,"Unclosed\n', 'P001,"Home"x\n'):
+            with self.subTest(row=row):
+                path.write_text('product_id,category\n' + row, encoding='utf-8')
+                with self.assertRaises(csv.Error):
+                    build_database(self.source, self.db)
+                self.assertEqual(self.db.read_bytes(), original)
+
+    def test_quoted_category_text_survives_import_and_export(self):
+        categories = {
+            'P001': 'Electronics, audio',
+            'P002': 'Home "special"',
+            'P003': 'Books\nMultiline',
+        }
+        with (self.source / 'products.csv').open('w', newline='', encoding='utf-8') as handle:
+            writer = csv.writer(handle)
+            writer.writerow(['product_id', 'category'])
+            writer.writerows(categories.items())
+        rows = self.report('category_sales')
+        self.assertEqual(
+            {row['category']: float(row['merchandise_value']) for row in rows},
+            {'Electronics, audio': 200.0, 'Home "special"': 50.0,
+             'Books\nMultiline': 45.0},
+        )
+
     def test_orphan_product_rejected(self):
         path = self.source / 'order_items.csv'
         path.write_text(path.read_text().replace('P001', 'UNKNOWN'))
