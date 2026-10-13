@@ -20,7 +20,8 @@ REPORTS = ['monthly_sales', 'category_sales', 'delivery_performance', 'repeat_cu
 
 def read_rows(folder, table):
     with (folder / f'{table}.csv').open(encoding='utf-8-sig', newline='') as handle:
-        reader = csv.DictReader(handle)
+        # Reject broken quoting instead of silently changing field contents.
+        reader = csv.DictReader(handle, strict=True)
         if reader.fieldnames != COLUMNS[table]:
             raise ValueError(f'{table}: expected columns {COLUMNS[table]}')
         rows = []
