@@ -114,6 +114,24 @@ class PipelineTests(unittest.TestCase):
              'Books\nMultiline': 45.0},
         )
 
+    def test_order_without_items_preserves_existing_database(self):
+        build_database(self.source, self.db)
+        original = self.db.read_bytes()
+        path = self.source / 'order_items.csv'
+        with path.open(newline='', encoding='utf-8') as handle:
+            reader = csv.DictReader(handle)
+            fields = reader.fieldnames
+            rows = [row for row in reader if row['order_id'] != 'O001']
+        with path.open('w', newline='', encoding='utf-8') as handle:
+            writer = csv.DictWriter(handle, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+        # O001 has multiple items; removing all of them must not silently
+        # remove the order from the order_summary view and sales reports.
+        with self.assertRaisesRegex(ValueError, 'orders have no items'):
+            build_database(self.source, self.db)
+        self.assertEqual(self.db.read_bytes(), original)
+
     def test_orphan_product_rejected(self):
         path = self.source / 'order_items.csv'
         path.write_text(path.read_text().replace('P001', 'UNKNOWN'))
