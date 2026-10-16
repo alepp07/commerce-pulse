@@ -31,6 +31,41 @@ to verify manually. Never present this fixture as Malaysian market data.
 For a source with additional statuses or timestamp fields, create an explicit
 adapter with documented mappings rather than discarding unsupported records.
 
+## CSV formatting
+
+Use commas as separators and keep the header names and order exactly as listed
+above. UTF-8 files with or without a byte-order mark (BOM) are accepted.
+
+Wrap a field in double quotes when it contains a comma, double quote, or line
+break. Inside a quoted field, write a literal double quote twice:
+
+```csv
+product_id,category
+P001,"Home, garden"
+P002,"Books ""special edition"""
+```
+
+These categories load as `Home, garden` and `Books "special edition"`.
+Unclosed quotes and unexpected text after a closing quote are rejected.
+When generating CSVs in Python, use `csv.writer` or `csv.DictWriter` with
+`newline=''` and `encoding='utf-8'` instead of joining values with commas.
+
+For a shipped or cancelled order, keep the final delivery-date column empty;
+the trailing comma is required when using the unquoted form:
+
+```csv
+order_id,customer_id,status,ordered_at,estimated_delivery_at,delivered_at
+O001,C001,shipped,2025-01-01,2025-01-05,
+```
+
+Do not substitute `NULL`, `None`, or `N/A` for a blank date. Required
+fields containing only whitespace are rejected. For validation errors that
+include a line number, it is the physical ending line of the CSV record;
+a quoted multiline field can span more than one line.
+
+These snippets illustrate individual files, not a complete input dataset.
+Matching customers, products, orders, and order items are still required.
+
 ## Table relationships
 
 ```mermaid
