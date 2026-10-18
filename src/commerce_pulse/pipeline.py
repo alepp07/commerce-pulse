@@ -40,6 +40,10 @@ def read_rows(folder, table):
                     f'{table}:{line}: missing required value in {", ".join(missing_fields)}'
                 )
             if table == 'orders':
+                if row['status'] not in ('delivered', 'shipped', 'cancelled'):
+                    raise ValueError(
+                        f'{table}:{line}: status must be delivered, shipped, or cancelled'
+                    )
                 dates = {}
                 for key in ('ordered_at', 'estimated_delivery_at', 'delivered_at'):
                     if row[key]:
