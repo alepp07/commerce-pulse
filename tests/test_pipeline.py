@@ -144,6 +144,18 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_database(self.source, self.db)
 
+    def test_monthly_growth_across_year_boundary(self):
+        path = self.source / 'orders.csv'
+        # Move January/February to December/January while preserving day values.
+        path.write_text(path.read_text().replace('2025-01', '2024-12')
+                                        .replace('2025-02', '2025-01'))
+        rows = self.report('monthly_sales')
+        self.assertEqual([row['month'] for row in rows], ['2024-12', '2025-01'])
+        self.assertEqual([float(row['merchandise_value']) for row in rows],
+                         [180.0, 115.0])
+        self.assertEqual(rows[0]['month_over_month_pct'], '')
+        self.assertEqual(float(rows[1]['month_over_month_pct']), -36.11)
+
     def test_nonconsecutive_month_has_no_growth_rate(self):
         path = self.source / 'orders.csv'
         path.write_text(path.read_text().replace('2025-02', '2025-03'))
