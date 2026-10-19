@@ -66,6 +66,27 @@ a quoted multiline field can span more than one line.
 These snippets illustrate individual files, not a complete input dataset.
 Matching customers, products, orders, and order items are still required.
 
+## Preparing monetary values
+
+Store the price of one unit in `unit_price_cents`; the pipeline multiplies it
+by `quantity` to calculate each line's value. For example, three units priced
+at 19.99 each must use:
+
+```csv
+order_id,item_id,product_id,quantity,unit_price_cents
+O001,1,P001,3,1999
+```
+
+This line contributes 5,997 minor units (59.97) to the order. Do not put the
+line total `5997` in `unit_price_cents`, or quantity will be applied twice.
+Decimal strings such as `19.99` and currency symbols are rejected in integer
+columns.
+
+When adapting a decimal-price source, use decimal arithmetic and document
+how amounts with more than two decimal places are rounded. Convert to minor
+units before writing the CSV. Keep one currency across all four input files;
+the schema has no currency field or exchange-rate conversion.
+
 ## Table relationships
 
 ```mermaid
