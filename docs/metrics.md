@@ -22,3 +22,29 @@ Small regional samples are unstable; show denominators beside percentages.
 The SQL uses SQLite-specific date expressions. A PostgreSQL migration must adapt
 those expressions and re-run metric tests; these scripts are not claimed to be
 portable without modification.
+
+## Combining groups correctly
+
+Recalculate rates and averages from their totals when combining regions or
+months. A simple average of the displayed percentages gives small groups the
+same weight as large groups.
+
+For illustration, if one region has 1 late order out of 2 deliveries and
+another has 1 out of 8, the overall late rate is `100 × (1 + 1) / (2 + 8) = 20%`.
+Averaging the regional rates, 50% and 12.5%, would incorrectly give 31.25%.
+These numbers are illustrative, not results from the included sample.
+
+Calculate the overall delivery rate directly from the order-level view:
+
+```sql
+SELECT COUNT(*) AS delivered_orders,
+       COALESCE(SUM(is_late), 0) AS late_orders,
+       ROUND(100.0 * SUM(is_late) / NULLIF(COUNT(*), 0), 2) AS late_delivery_pct
+FROM order_summary
+WHERE status = 'delivered';
+```
+
+With no delivered orders, the counts are zero and the rate is null.
+For combined average order value, divide total merchandise value by total
+delivered orders. For average delivery days, average the order-level
+`delivery_days` values; combining rounded regional averages can lose precision.
