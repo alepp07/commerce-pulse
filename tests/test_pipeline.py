@@ -144,6 +144,33 @@ class PipelineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_database(self.source, self.db)
 
+    def test_status_delivery_date_mismatch_preserves_existing_database(self):
+        build_database(self.source, self.db)
+        original = self.db.read_bytes()
+        path = self.source / 'orders.csv'
+        with path.open(newline='', encoding='utf-8') as handle:
+            reader = csv.DictReader(handle)
+            fields = reader.fieldnames
+            source_rows = list(reader)
+        cases = [
+            ('O001', ''),           # Delivered orders require an actual date.
+            ('O004', '2025-02-07'), # Cancelled orders must have no actual date.
+            ('O005', '2025-02-08'), # Shipped orders must have no actual date.
+        ]
+        for order_id, delivered_at in cases:
+            with self.subTest(order_id=order_id):
+                rows = [dict(row) for row in source_rows]
+                for row in rows:
+                    if row['order_id'] == order_id:
+                        row['delivered_at'] = delivered_at
+                with path.open('w', newline='', encoding='utf-8') as handle:
+                    writer = csv.DictWriter(handle, fieldnames=fields)
+                    writer.writeheader()
+                    writer.writerows(rows)
+                with self.assertRaisesRegex(ValueError, 'status and delivery date disagree'):
+                    build_database(self.source, self.db)
+                self.assertEqual(self.db.read_bytes(), original)
+
     def test_monthly_growth_across_year_boundary(self):
         path = self.source / 'orders.csv'
         # Move January/February to December/January while preserving day values.
