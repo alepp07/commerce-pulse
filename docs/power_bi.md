@@ -45,6 +45,24 @@ rows. Their values will not respond to order-level date or region slicers.
 Label them **full dataset** or keep them on separate pages. A later star model
 will support consistent interactive filtering across all pages.
 
+## Preserve missing delivery values
+
+Keep blank `delivered_at`, `is_late`, and `delivery_days` values as null when
+preparing the imported table. Shipped and cancelled orders have no completed
+delivery, so filling these blanks with zero would make them look like
+same-day, on-time deliveries.
+
+| Field | Zero means | Blank means |
+|---|---|---|
+| is_late | A delivered order arrived on or before its estimated date | The order is not delivered |
+| delivery_days | A delivered order arrived on its purchase date | The order is not delivered |
+
+For the bundled sample, O004 and O005 should have blank values in both numeric
+delivery fields. O003 should have `is_late = 0` because it arrived exactly on
+its estimated date. Use a delivered-status filter for delivery charts, and
+retain blanks when a rate has no eligible orders; an undefined rate is
+different from a measured 0% late rate.
+
 ## Validate the sample dashboard
 
 Use the bundled synthetic data and clear all filters first. The four measures
