@@ -90,6 +90,9 @@ outputs. Track the source extraction date separately when loading real data.
 | `FileNotFoundError` for an input CSV | The input folder must contain `customers.csv`, `products.csv`, `orders.csv`, and `order_items.csv`. Relative `--input` paths are resolved from your current terminal directory. |
 | `expected columns` | Match the sample header names **and their order**. Extra columns are not accepted. |
 | `missing required value` or `malformed CSV row` | Check the reported file and line for blank required fields, missing columns, or unquoted commas. |
+| `unexpected end of data` or a CSV quoting error | Check for an unclosed quoted field or text after a closing quote. Use double quotes around fields containing commas or line breaks, and double any literal quote inside them. See [CSV formatting](docs/data_dictionary.md#csv-formatting). |
+| `status must be delivered, shipped, or cancelled` | Use one of these exact lowercase values. Map other source statuses explicitly before importing. |
+| `no data rows` | The named file has the expected header but no data records. All four input files require at least one data row. |
 | `UNIQUE constraint failed` | Check for duplicate customer, product, or order IDs, or duplicate `(order_id, item_id)` pairs. Investigate duplicates before removing them. |
 | `FOREIGN KEY constraint failed` | Each order must reference an existing customer; each item must reference an existing order and product. |
 | `status and delivery date disagree` | Delivered orders require an actual delivery date. Shipped and cancelled orders must leave that field blank. |
