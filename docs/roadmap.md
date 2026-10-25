@@ -4,7 +4,7 @@
 
 - Validated relational inputs and deterministic sample fixture
 - Four SQL analyses and order-level export
-- Seven regression tests and GitHub Actions workflow
+- Regression tests and GitHub Actions workflow
 - Metric definitions and Power BI specification
 
 ## 2. Real-data analysis — next
@@ -14,6 +14,24 @@
 - Document date parsing, status mappings, missingness, and exclusions.
 - Add payment/returns fields only with explicit grain and metric definitions.
 - Reconcile source totals, then write three to five supported findings with caveats.
+
+### Acceptance criteria for the first real dataset
+
+Before marking this stage complete, include:
+
+- A source note with the download URL, licence, extraction date, observation
+  window, and currency.
+- A mapping from source columns to the four input tables, including the
+  customer identity rule and every status conversion.
+- A reconciliation table showing source rows, accepted rows, and excluded rows
+  with reasons for each exclusion. Explain any row-count changes caused by
+  aggregation or splitting records.
+- A reproducible command that converts the source into the input contract and
+  runs the pipeline successfully.
+- Checks against independently calculated delivered-order counts and
+  merchandise-value totals, plus an explanation of any differences.
+- Findings linked to specific query results, with limitations such as missing
+  returns, incomplete months, or a restricted observation window.
 
 ## 3. Dashboard
 
