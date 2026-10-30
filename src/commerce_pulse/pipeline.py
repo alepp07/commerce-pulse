@@ -71,6 +71,12 @@ def read_rows(folder, table):
                         raise ValueError(
                             f'{table}:{line}: {key} must be an integer'
                         ) from exc
+                    minimum = 0 if key == 'unit_price_cents' else 1
+                    if row[key] < minimum:
+                        requirement = 'nonnegative' if minimum == 0 else 'positive'
+                        raise ValueError(
+                            f'{table}:{line}: {key} must be a {requirement} integer'
+                        )
             rows.append(tuple(row[key] for key in COLUMNS[table]))
         if not rows:
             raise ValueError(f'{table}: no data rows')
