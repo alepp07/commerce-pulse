@@ -92,6 +92,9 @@ outputs. Track the source extraction date separately when loading real data.
 | `missing required value` or `malformed CSV row` | Check the reported file and line for blank required fields, missing columns, or unquoted commas. |
 | `unexpected end of data` or a CSV quoting error | Check for an unclosed quoted field or text after a closing quote. Use double quotes around fields containing commas or line breaks, and double any literal quote inside them. See [CSV formatting](docs/data_dictionary.md#csv-formatting). |
 | `status must be delivered, shipped, or cancelled` | Use one of these exact lowercase values. Map other source statuses explicitly before importing. |
+| `must be an integer` | Check the named item column for decimals, currency symbols, or thousands separators. For a unit price of 12.50, write `1250` in `unit_price_cents`. |
+| `must be a positive integer` | `item_id` and `quantity` must be at least 1. Investigate zero or negative quantities in the source; returns need an explicit model rather than negative order lines. |
+| `must be a nonnegative integer` | `unit_price_cents` must be zero or greater. Zero is valid for a free item; negative prices are rejected. |
 | `no data rows` | The named file has the expected header but no data records. All four input files require at least one data row. |
 | `UNIQUE constraint failed` | Check for duplicate customer, product, or order IDs, or duplicate `(order_id, item_id)` pairs. Investigate duplicates before removing them. |
 | `FOREIGN KEY constraint failed` | Each order must reference an existing customer; each item must reference an existing order and product. |
