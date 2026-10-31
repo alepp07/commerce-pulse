@@ -48,3 +48,16 @@ With no delivered orders, the counts are zero and the rate is null.
 For combined average order value, divide total merchandise value by total
 delivered orders. For average delivery days, average the order-level
 `delivery_days` values; combining rounded regional averages can lose precision.
+
+## Reading category ranks
+
+The category report ranks delivered merchandise value from highest to lowest.
+Equal values share a rank, and the next distinct value receives the next
+consecutive rank (`DENSE_RANK`). For example, illustrative values of 100, 100,
+and 50 produce ranks 1, 1, and 2. Category names determine display order
+within a tie; they do not break the tie.
+
+A filter such as `value_rank <= 3` can therefore include more than three
+categories. Label it as the top three value ranks if ties are retained.
+Categories with no delivered items are absent from this report. A category
+whose delivered items are all free appears with zero merchandise value.
