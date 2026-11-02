@@ -66,6 +66,23 @@ a quoted multiline field can span more than one line.
 These snippets illustrate individual files, not a complete input dataset.
 Matching customers, products, orders, and order items are still required.
 
+## Preserving identifiers
+
+Treat `customer_id`, `product_id`, and `order_id` as text throughout source
+preparation. For example, `00123` and `123` are different identifiers, and
+`C001` and `c001` are different identifiers. References across the four CSVs
+must use the same spelling and case.
+
+The loader strips surrounding whitespace: ` C001 ` becomes `C001`.
+Two source IDs that differ only by surrounding whitespace therefore collide
+after loading and trigger a duplicate-key error. Investigate the source
+instead of silently dropping one of those records.
+
+The exception is `item_id`, which is an integer within each order:
+`01` and `1` both become 1 and cannot identify separate lines of the same
+order. If a source uses text line IDs, create and document a mapping to
+positive integers that stays unique within each order.
+
 ## Preparing monetary values
 
 Store the price of one unit in `unit_price_cents`; the pipeline multiplies it
