@@ -61,3 +61,21 @@ A filter such as `value_rank <= 3` can therefore include more than three
 categories. Label it as the top three value ranks if ties are retained.
 Categories with no delivered items are absent from this report. A category
 whose delivered items are all free appears with zero merchandise value.
+
+## Repeat customers across time windows
+
+Recompute repeat purchase from individual orders when combining periods.
+Neither monthly customer counts nor monthly repeat rates can be added or
+averaged to obtain the full-window result, because the same customer can
+appear in more than one month.
+
+For example, a customer with one delivered order in January and one in
+February is not a repeat purchaser within either month, but is a repeat
+purchaser across January and February together. If this is the only customer,
+each month's rate is 0%, while the combined rate is 100%.
+
+The current `repeat_customers.sql` query uses all supplied orders and has no
+date filter. To analyse a specific purchase window, filter `ordered_at`
+inside the `purchases` CTE before grouping by customer. Record the window
+alongside the result. Orders outside that window do not contribute to the
+two-order threshold, so this does not measure lifetime repeat purchasing.
