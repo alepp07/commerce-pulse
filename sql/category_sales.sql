@@ -8,5 +8,7 @@ WITH categories AS (
     WHERE o.status = 'delivered'
     GROUP BY p.category
 )
-SELECT *, DENSE_RANK() OVER (ORDER BY merchandise_value DESC) AS value_rank
+SELECT *, DENSE_RANK() OVER (ORDER BY merchandise_value DESC) AS value_rank,
+       ROUND(100.0 * merchandise_value / NULLIF(SUM(merchandise_value) OVER (), 0), 2)
+           AS merchandise_value_share_pct
 FROM categories ORDER BY value_rank, category;
