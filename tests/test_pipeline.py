@@ -66,6 +66,27 @@ class PipelineTests(unittest.TestCase):
         # An order spanning categories contributes once to each category.
         # Merchandise value is additive; category order counts are not.
         self.assertEqual(sum(float(r['merchandise_value']) for r in rows), 295.0)
+        self.assertEqual(
+            {r['category']: float(r['merchandise_value_share_pct']) for r in rows},
+            {'Electronics': 67.80, 'Home': 16.95, 'Books': 15.25},
+        )
+
+    def test_category_shares_are_blank_when_delivered_value_is_zero(self):
+        path = self.source / 'order_items.csv'
+        with path.open(newline='') as handle:
+            reader = csv.DictReader(handle)
+            fields = reader.fieldnames
+            items = list(reader)
+        with path.open('w', newline='') as handle:
+            writer = csv.DictWriter(handle, fieldnames=fields)
+            writer.writeheader()
+            for item in items:
+                writer.writerow({**item, 'unit_price_cents': '0'})
+        self.assertEqual(
+            {r['category']: r['merchandise_value_share_pct']
+             for r in self.report('category_sales')},
+            {'Electronics': '', 'Home': '', 'Books': ''},
+        )
 
     def test_equal_category_values_share_rank(self):
         path = self.source / 'order_items.csv'
