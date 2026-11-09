@@ -62,6 +62,14 @@ categories. Label it as the top three value ranks if ties are retained.
 Categories with no delivered items are absent from this report. A category
 whose delivered items are all free appears with zero merchandise value.
 
+The `merchandise_value_share_pct` column shows each category’s delivered
+merchandise value as a percentage of the total across all categories. For
+example, 30 out of 120 is reported as `25.0`, meaning 25%. Filtering the
+export to the top ranks keeps that original denominator. Shares are rounded
+to two decimal places, so their sum can differ slightly from 100%.
+If the total value is zero, every share is null; if only one category has
+zero value and the total is positive, that category’s share is 0%.
+
 ## Repeat customers across time windows
 
 Recompute repeat purchase from individual orders when combining periods.
