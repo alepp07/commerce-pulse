@@ -23,6 +23,19 @@ The SQL uses SQLite-specific date expressions. A PostgreSQL migration must adapt
 those expressions and re-run metric tests; these scripts are not claimed to be
 portable without modification.
 
+## Reading the sample monthly sales report
+
+| Purchase month | Delivered orders | Merchandise value | Average order value | Change in merchandise value |
+|---|---:|---:|---:|---:|
+| January 2025 | 2 | 180.00 | 90.00 | — |
+| February 2025 | 2 | 115.00 | 57.50 | −36.11% |
+
+In the synthetic sample, delivered order count held steady while merchandise
+value fell by 65.00. The decline came from smaller orders on average:
+February's two delivered orders were worth 15.00 and 100.00. Its shipped
+and cancelled orders do not enter either the count or the value. January's
+growth field is blank because the sample has no December comparison.
+
 ## Combining groups correctly
 
 Recalculate rates and averages from their totals when combining regions or
