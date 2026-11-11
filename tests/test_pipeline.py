@@ -88,6 +88,24 @@ class PipelineTests(unittest.TestCase):
             {'Electronics': '', 'Home': '', 'Books': ''},
         )
 
+    def test_free_category_keeps_zero_share_when_other_categories_have_value(self):
+        path = self.source / 'order_items.csv'
+        path.write_text(path.read_text().replace('O002,1,P002,1,5000',
+                                                 'O002,1,P002,1,0'))
+        rows = {r['category']: r for r in self.report('category_sales')}
+        # A free delivered item still counts as a unit and an order.
+        home = rows['Home']
+        self.assertEqual(int(home['units']), 1)
+        self.assertEqual(int(home['delivered_orders']), 1)
+        self.assertEqual(float(home['merchandise_value']), 0.0)
+        self.assertEqual(float(home['merchandise_value_share_pct']), 0.0)
+        self.assertEqual(int(home['value_rank']), 3)
+        self.assertEqual(
+            {category: float(row['merchandise_value_share_pct'])
+             for category, row in rows.items()},
+            {'Electronics': 81.63, 'Books': 18.37, 'Home': 0.0},
+        )
+
     def test_equal_category_values_share_rank(self):
         path = self.source / 'order_items.csv'
         path.write_text(path.read_text().replace('O002,1,P002,1,5000',
