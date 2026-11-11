@@ -45,6 +45,27 @@ rows. Their values will not respond to order-level date or region slicers.
 Label them **full dataset** or keep them on separate pages. A later star model
 will support consistent interactive filtering across all pages.
 
+## Check category share displays
+
+The category export includes `merchandise_value_share_pct` on a 0–100
+scale. For a table, show it as a decimal number with two decimal places
+and label the column **Share of delivered value (%)**.
+
+| Category | Merchandise value | Share of delivered value (%) |
+|---|---:|---:|
+| Electronics | 200.00 | 67.80 |
+| Home | 50.00 | 16.95 |
+| Books | 45.00 | 15.25 |
+
+These are expectations for the bundled synthetic sample. The category values
+should sum to 295.00. If using a percentage-formatted field instead, divide
+the exported share by 100 first: 67.80 becomes 0.6780, displayed as 67.80%.
+Keep null shares blank when total merchandise value is zero.
+
+A top-category filter hides rows without recalculating the exported shares.
+Label the visual **Share of full-dataset delivered value**; the visible
+shares need not sum to 100%. Order-level slicers do not change this summary.
+
 ## Preserve missing delivery values
 
 Keep blank `delivered_at`, `is_late`, and `delivery_days` values as null when
