@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 import shutil
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -324,6 +325,22 @@ class PipelineTests(unittest.TestCase):
             {path.name for path in output.glob('*.csv')},
             {'monthly_sales.csv', 'category_sales.csv', 'delivery_performance.csv',
              'repeat_customers.csv', 'order_summary.csv'},
+        )
+
+    def test_cli_rejects_output_that_resolves_to_input_folder(self):
+        original = {path.name: path.read_bytes()
+                    for path in self.source.iterdir()}
+        result = subprocess.run(
+            [sys.executable, str(ROOT / 'src/commerce_pulse/pipeline.py'),
+             '--input', str(self.source),
+             '--output', str(self.source / '..' / self.source.name)],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('--output must differ from --input', result.stderr)
+        self.assertEqual(
+            {path.name: path.read_bytes() for path in self.source.iterdir()},
+            original,
         )
 
     def test_rerun_does_not_duplicate_data(self):
