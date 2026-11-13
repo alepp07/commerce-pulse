@@ -106,6 +106,20 @@ class PipelineTests(unittest.TestCase):
             {'Electronics': 81.63, 'Books': 18.37, 'Home': 0.0},
         )
 
+    def test_multiple_items_in_same_category_count_order_once(self):
+        with (self.source / 'order_items.csv').open('a', encoding='utf-8') as handle:
+            handle.write('O001,3,P001,2,2500\n')
+        rows = {r['category']: r for r in self.report('category_sales')}
+        electronics = rows['Electronics']
+        # O001 now has two Electronics lines, but is still one order.
+        self.assertEqual(int(electronics['units']), 4)
+        self.assertEqual(int(electronics['delivered_orders']), 2)
+        self.assertEqual(float(electronics['merchandise_value']), 250.0)
+        monthly = self.report('monthly_sales')
+        self.assertEqual([int(r['delivered_orders']) for r in monthly], [2, 2])
+        self.assertEqual([float(r['merchandise_value']) for r in monthly],
+                         [230.0, 115.0])
+
     def test_equal_category_values_share_rank(self):
         path = self.source / 'order_items.csv'
         path.write_text(path.read_text().replace('O002,1,P002,1,5000',
