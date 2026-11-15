@@ -360,6 +360,21 @@ class PipelineTests(unittest.TestCase):
             expected,
         )
 
+    def test_header_only_inputs_preserve_existing_database(self):
+        build_database(self.source, self.db)
+        original_database = self.db.read_bytes()
+        for name in ('customers', 'products', 'orders', 'order_items'):
+            with self.subTest(table=name):
+                path = self.source / f'{name}.csv'
+                original_csv = path.read_bytes()
+                try:
+                    path.write_bytes(original_csv.splitlines(keepends=True)[0])
+                    with self.assertRaisesRegex(ValueError, f'{name}: no data rows'):
+                        build_database(self.source, self.db)
+                    self.assertEqual(self.db.read_bytes(), original_database)
+                finally:
+                    path.write_bytes(original_csv)
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
