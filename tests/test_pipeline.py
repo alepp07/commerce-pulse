@@ -343,6 +343,23 @@ class PipelineTests(unittest.TestCase):
             original,
         )
 
+    def test_utf8_bom_csvs_produce_identical_reports(self):
+        build_database(self.source, self.db)
+        baseline = self.root / 'baseline'
+        export_reports(self.db, baseline)
+        expected = {path.name: path.read_bytes() for path in baseline.glob('*.csv')}
+        # Spreadsheet exports may prefix each CSV with a UTF-8 byte order mark.
+        for path in self.source.glob('*.csv'):
+            text = path.read_text(encoding='utf-8')
+            path.write_text(text, encoding='utf-8-sig')
+        build_database(self.source, self.db)
+        output = self.root / 'with_bom'
+        export_reports(self.db, output)
+        self.assertEqual(
+            {path.name: path.read_bytes() for path in output.glob('*.csv')},
+            expected,
+        )
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
