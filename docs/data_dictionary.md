@@ -83,6 +83,26 @@ The exception is `item_id`, which is an integer within each order:
 order. If a source uses text line IDs, create and document a mapping to
 positive integers that stays unique within each order.
 
+## Preparing dates
+
+Keep dates as text in `YYYY-MM-DD` format when preparing CSVs. The loader
+checks both the calendar date and its exact format; it does not infer a
+regional date convention.
+
+| Source value | Preparation |
+|---|---|
+| `2025-02-03` | Already valid: 3 February 2025. |
+| `03/02/2025` | Confirm the source convention before converting; this could mean 3 February or 2 March. |
+| `20250203` | Convert explicitly to `2025-02-03`; compact dates are rejected. |
+| `2025-02-30` | Correct the source record; February has no 30th day. |
+| `2025-02-03T23:30:00Z` | Choose and document the business timezone before extracting a date. Timestamps are rejected. |
+
+For timestamp sources, convert purchase, estimated delivery, and actual
+delivery timestamps using a consistent, documented convention before dropping
+the time component. A timezone conversion near midnight can change the date
+and therefore the purchase month or calculated delivery duration. The loader
+does not perform that conversion.
+
 ## Preparing monetary values
 
 Store the price of one unit in `unit_price_cents`; the pipeline multiplies it
