@@ -375,6 +375,21 @@ class PipelineTests(unittest.TestCase):
                 finally:
                     path.write_bytes(original_csv)
 
+    def test_invalid_date_formats_preserve_existing_database(self):
+        build_database(self.source, self.db)
+        original_database = self.db.read_bytes()
+        path = self.source / 'orders.csv'
+        original_csv = path.read_text(encoding='utf-8')
+        cases = ('20250101', '01/01/2025', '2025-02-30',
+                 '2025-01-01T00:00:00Z')
+        for value in cases:
+            with self.subTest(date=value):
+                path.write_text(original_csv.replace('2025-01-01', value),
+                                encoding='utf-8')
+                with self.assertRaisesRegex(ValueError, 'YYYY-MM-DD'):
+                    build_database(self.source, self.db)
+                self.assertEqual(self.db.read_bytes(), original_database)
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
