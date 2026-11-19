@@ -413,6 +413,27 @@ class PipelineTests(unittest.TestCase):
                     build_database(self.source, self.db)
                 self.assertEqual(self.db.read_bytes(), original_database)
 
+    def test_rerun_replaces_reports_after_order_status_changes(self):
+        initial = self.report('monthly_sales')
+        self.assertEqual(float(initial[0]['merchandise_value']), 180.0)
+        path = self.source / 'orders.csv'
+        path.write_text(path.read_text().replace(
+            'O002,C002,delivered,2025-01-10,2025-01-15,2025-01-17',
+            'O002,C002,cancelled,2025-01-10,2025-01-15,',
+        ))
+        # Reuse the database and output folder to catch stale exported totals.
+        updated = self.report('monthly_sales')
+        self.assertEqual(int(updated[0]['delivered_orders']), 1)
+        self.assertEqual(float(updated[0]['merchandise_value']), 130.0)
+        self.assertEqual(float(updated[0]['average_order_value']), 130.0)
+        self.assertEqual(float(updated[1]['month_over_month_pct']), -11.54)
+        with (self.root / 'reports/order_summary.csv').open(newline='') as handle:
+            orders = {row['order_id']: row for row in csv.DictReader(handle)}
+        self.assertEqual(len(orders), 6)
+        self.assertEqual(orders['O002']['status'], 'cancelled')
+        self.assertEqual(orders['O002']['is_late'], '')
+        self.assertEqual(orders['O002']['delivery_days'], '')
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
