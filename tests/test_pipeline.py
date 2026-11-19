@@ -390,6 +390,29 @@ class PipelineTests(unittest.TestCase):
                     build_database(self.source, self.db)
                 self.assertEqual(self.db.read_bytes(), original_database)
 
+    def test_invalid_item_numbers_preserve_existing_database(self):
+        build_database(self.source, self.db)
+        original_database = self.db.read_bytes()
+        path = self.source / 'order_items.csv'
+        with path.open(newline='', encoding='utf-8') as handle:
+            reader = csv.DictReader(handle)
+            fields = reader.fieldnames
+            original_rows = list(reader)
+        cases = [('item_id', '0'), ('quantity', '0'), ('quantity', '-1'),
+                 ('quantity', '1.5'), ('unit_price_cents', '-1'),
+                 ('unit_price_cents', '19.99')]
+        for field, value in cases:
+            with self.subTest(field=field, value=value):
+                rows = [dict(row) for row in original_rows]
+                rows[0][field] = value
+                with path.open('w', newline='', encoding='utf-8') as handle:
+                    writer = csv.DictWriter(handle, fieldnames=fields)
+                    writer.writeheader()
+                    writer.writerows(rows)
+                with self.assertRaisesRegex(ValueError, f'{field} must be'):
+                    build_database(self.source, self.db)
+                self.assertEqual(self.db.read_bytes(), original_database)
+
     def test_rerun_does_not_duplicate_data(self):
         first = self.report('monthly_sales')
         self.assertEqual(first, self.report('monthly_sales'))
