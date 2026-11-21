@@ -62,6 +62,25 @@ For combined average order value, divide total merchandise value by total
 delivered orders. For average delivery days, average the order-level
 `delivery_days` values; combining rounded regional averages can lose precision.
 
+## Interpreting delivery performance
+
+The delivery report includes completed deliveries only. A shipped order whose
+estimated date has passed is excluded, so this report does not measure the
+current overdue backlog. Regions with no delivered orders are absent rather
+than shown with a 0% late rate.
+
+Delivery duration and lateness answer different questions. For illustration,
+an order purchased on 1 January, estimated for 5 January, and delivered on
+4 January takes three calendar days and is on time. If its estimate were
+3 January instead, the same three-day delivery would be late. Compare both
+metrics before concluding that one region delivers faster or meets promises
+more reliably.
+
+The region comes from the customer record, and the model has no carrier or
+warehouse field. Regional differences alone cannot identify which carrier or
+warehouse caused a delay. Use the delivered-order counts to assess how much
+evidence supports each comparison.
+
 ## Reading category ranks
 
 The category report ranks delivered merchandise value from highest to lowest.
