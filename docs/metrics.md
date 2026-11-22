@@ -36,6 +36,28 @@ February's two delivered orders were worth 15.00 and 100.00. Its shipped
 and cancelled orders do not enter either the count or the value. January's
 growth field is blank because the sample has no December comparison.
 
+## Missing months and zero-value months
+
+The monthly report emits a row only when a purchase month contains at least
+one delivered order. A month containing only shipped or cancelled orders is
+absent. A month with delivered orders whose items are all free appears with
+zero merchandise value and zero average order value.
+
+The growth calculation compares consecutive calendar months only:
+
+| Previous calendar month | Current month | Growth result |
+|---|---|---|
+| Missing | Has delivered orders | Blank, even if an older month exists |
+| Value is zero | Has delivered orders | Blank because the denominator is zero |
+| Positive value | Delivered value is zero | −100% |
+| Positive value | Same positive value | 0% |
+
+For example, January and March rows with no February row do not produce
+a March month-over-month rate. Do not fill a blank growth rate with 0%;
+that would imply a measured absence of change. If a chart needs every
+calendar month, add a calendar axis while preserving the distinction between
+an absent report row and a delivered month with zero value.
+
 ## Combining groups correctly
 
 Recalculate rates and averages from their totals when combining regions or
