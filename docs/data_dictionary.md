@@ -83,6 +83,22 @@ The exception is `item_id`, which is an integer within each order:
 order. If a source uses text line IDs, create and document a mapping to
 positive integers that stays unique within each order.
 
+## Customer identity and repeat purchases
+
+Repeat purchasing groups delivered orders by `customer_id`. Keep the same
+identifier for the same customer across source extracts. Assigning a new ID
+for every order makes returning customers appear to be first-time buyers.
+
+Do not combine all guest checkouts under one shared customer ID. For example,
+two unrelated guests with one delivered order each would then appear as one
+customer with two orders, incorrectly producing a repeat purchase. Use the
+source's stable customer identity when available, and document how guest
+orders are represented when it is not.
+
+The loader checks that customer references exist, but it cannot determine
+whether two IDs represent the same person or whether one ID represents
+several people. Record identity limitations alongside repeat-customer results.
+
 ## Preparing dates
 
 Keep dates as text in `YYYY-MM-DD` format when preparing CSVs. The loader
