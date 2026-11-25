@@ -7,6 +7,7 @@
 | Month-over-month growth | (Current value − previous value) / previous value × 100 | Null if prior calendar month is absent or value is zero |
 | Late delivery rate | Delivered orders with actual delivery date after estimated date / delivered orders × 100 | Delivery on the estimated date is on time |
 | Average delivery days | Mean calendar-day difference between purchase and actual delivery for delivered orders | Not working days |
+| Average days late | Mean calendar days past the estimated date among late deliveries in a region | Blank if no deliveries were late |
 | Repeat customer rate | Customers with at least two delivered orders / customers with at least one × 100 | Observation-window metric, not cohort retention |
 | Category units | Sum of item quantities for delivered orders | Not the number of order lines |
 
@@ -97,6 +98,11 @@ an order purchased on 1 January, estimated for 5 January, and delivered on
 3 January instead, the same three-day delivery would be late. Compare both
 metrics before concluding that one region delivers faster or meets promises
 more reliably.
+
+In the synthetic sample, 1 of the North region's 2 deliveries was late:
+it was due on 15 January and arrived on 17 January. North therefore has a
+50% late rate and `average_days_late` of 2. Central has a 0% late rate
+and a blank average because no deliveries there were late.
 
 The region comes from the customer record, and the model has no carrier or
 warehouse field. Regional differences alone cannot identify which carrier or

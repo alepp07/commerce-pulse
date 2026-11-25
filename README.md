@@ -39,7 +39,7 @@ The pipeline creates these local files in `artifacts/`:
 | `commerce.sqlite` | Validated relational database and order-level view |
 | `monthly_sales.csv` | Delivered order count, value, average value, and monthly growth |
 | `category_sales.csv` | Category value ranking and units sold |
-| `delivery_performance.csv` | Late delivery rate and average delivery time by region |
+| `delivery_performance.csv` | Late delivery rate, average delivery time, and average days late among late deliveries by region |
 | `repeat_customers.csv` | Repeat purchase rate across the observation window |
 | `order_summary.csv` | One row per order, ready for Power BI |
 | `run_manifest.json` | UTC generation time, input location, row counts, and sample-data flag |

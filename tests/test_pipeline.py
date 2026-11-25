@@ -40,6 +40,21 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(float(rows['North']['late_delivery_pct']), 50)
         self.assertEqual(float(self.report('repeat_customers')[0]['repeat_customer_pct']), 100)
 
+    def test_average_days_late_counts_only_late_orders_once(self):
+        # Add a two-item North order arriving three days past its January estimate.
+        with (self.source / 'orders.csv').open('a', newline='', encoding='utf-8') as handle:
+            csv.writer(handle).writerow(
+                ('O007', 'C002', 'delivered', '2025-01-20', '2025-01-31', '2025-02-03')
+            )
+        with (self.source / 'order_items.csv').open('a', newline='', encoding='utf-8') as handle:
+            csv.writer(handle).writerows([
+                ('O007', 1, 'P001', 1, 100), ('O007', 2, 'P002', 1, 200),
+            ])
+        regions = {r['region']: r for r in self.report('delivery_performance')}
+        # North's other late order was two days late; its early delivery is excluded.
+        self.assertEqual(float(regions['North']['average_days_late']), 2.5)
+        self.assertEqual(regions['Central']['average_days_late'], '')
+
     def test_repeat_rate_counts_customers_with_delivered_orders_only(self):
         path = self.source / 'orders.csv'
         path.write_text(path.read_text().replace('O003,C001,delivered',
