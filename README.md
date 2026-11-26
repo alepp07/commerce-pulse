@@ -45,7 +45,16 @@ The pipeline creates these local files in `artifacts/`:
 | `run_manifest.json` | UTC generation time, input location, row counts, and sample-data flag |
 
 To load your own data, prepare the four CSVs using the exact column contract
-in [the data dictionary](docs/data_dictionary.md), then run:
+in [the data dictionary](docs/data_dictionary.md). To check them before
+refreshing reports, run:
+
+```bash
+python src/commerce_pulse/pipeline.py --input data/raw --validate-only
+```
+
+This checks the rows and their relationships in a temporary database. It exits
+with a nonzero status if validation fails and leaves the output folder untouched
+whether the check passes or fails. To generate the reports, run:
 
 ```bash
 python src/commerce_pulse/pipeline.py --input data/raw --output artifacts

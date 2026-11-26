@@ -152,7 +152,17 @@ def main():
         help=('Folder for commerce.sqlite, CSV reports, and run_manifest.json; '
               'existing generated files are replaced on rerun'),
     )
+    parser.add_argument(
+        '--validate-only', action='store_true',
+        help='Check the input CSVs and their relationships without writing to the output folder',
+    )
     args = parser.parse_args()
+    if args.validate_only:
+        with tempfile.TemporaryDirectory() as scratch:
+            counts = build_database(args.input, Path(scratch) / 'validation.sqlite')
+        print(f'Validated {sum(counts.values())} rows. No reports were written.')
+        return
+
     # Avoid overwriting user input by accidentally exporting into the source folder.
     if args.input.resolve() == args.output.resolve():
         parser.error('--output must differ from --input')

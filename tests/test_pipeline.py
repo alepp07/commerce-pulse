@@ -358,6 +358,32 @@ class PipelineTests(unittest.TestCase):
             original,
         )
 
+    def test_validate_only_preserves_previous_outputs(self):
+        output = self.root / 'reports'
+        command = [sys.executable, str(ROOT / 'src/commerce_pulse/pipeline.py'),
+                   '--input', str(self.source), '--output', str(output)]
+        subprocess.run(command, capture_output=True, text=True, check=True)
+        before = {p.name: p.read_bytes() for p in output.iterdir()}
+        with (self.source / 'customers.csv').open('a', newline='', encoding='utf-8') as handle:
+            csv.writer(handle).writerow(('C900', 'West'))
+        result = subprocess.run(command + ['--validate-only'], capture_output=True,
+                                text=True, check=True)
+        self.assertIn('Validated 21 rows', result.stdout)
+        self.assertEqual({p.name: p.read_bytes() for p in output.iterdir()}, before)
+
+    def test_validate_only_rejects_an_order_without_items(self):
+        with (self.source / 'orders.csv').open('a', newline='', encoding='utf-8') as handle:
+            csv.writer(handle).writerow(('O900', 'C001', 'shipped', '2025-02-01', '2025-02-05', ''))
+        output = self.root / 'reports'
+        result = subprocess.run(
+            [sys.executable, str(ROOT / 'src/commerce_pulse/pipeline.py'),
+             '--input', str(self.source), '--output', str(output), '--validate-only'],
+            capture_output=True, text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('orders have no items', result.stderr)
+        self.assertFalse(output.exists())
+
     def test_utf8_bom_csvs_produce_identical_reports(self):
         build_database(self.source, self.db)
         baseline = self.root / 'baseline'
