@@ -3,6 +3,7 @@ import argparse
 import csv
 import json
 import os
+from contextlib import closing
 from datetime import date, datetime, timezone
 from pathlib import Path
 import sqlite3
@@ -18,13 +19,13 @@ COLUMNS = {
 REPORTS = ['monthly_sales', 'category_sales', 'delivery_performance', 'repeat_customers']
 
 
-def read_rows(folder, table):
+def iter_rows(folder, table):
+    """Yield validated records as SQLite requests them."""
     with (folder / f'{table}.csv').open(encoding='utf-8-sig', newline='') as handle:
         # Reject broken quoting instead of silently changing field contents.
         reader = csv.DictReader(handle, strict=True)
         if reader.fieldnames != COLUMNS[table]:
             raise ValueError(f'{table}: expected columns {COLUMNS[table]}')
-        rows = []
         for row in reader:
             # Physical ending line of the record, including blanks and quoted newlines.
             line = reader.line_num
@@ -77,10 +78,7 @@ def read_rows(folder, table):
                         raise ValueError(
                             f'{table}:{line}: {key} must be a {requirement} integer'
                         )
-            rows.append(tuple(row[key] for key in COLUMNS[table]))
-        if not rows:
-            raise ValueError(f'{table}: no data rows')
-        return rows
+            yield tuple(row[key] for key in COLUMNS[table])
 
 
 def build_database(folder, database):
@@ -97,11 +95,13 @@ def build_database(folder, database):
         counts = {}
         with connection:
             for table, columns in COLUMNS.items():
-                rows = read_rows(folder, table)
-                connection.executemany(
-                    f"INSERT INTO {table} VALUES ({','.join('?' for _ in columns)})", rows
-                )
-                counts[table] = len(rows)
+                with closing(iter_rows(folder, table)) as rows:
+                    cursor = connection.executemany(
+                        f"INSERT INTO {table} VALUES ({','.join('?' for _ in columns)})", rows
+                    )
+                if cursor.rowcount == 0:
+                    raise ValueError(f'{table}: no data rows')
+                counts[table] = cursor.rowcount
             missing = connection.execute('''SELECT COUNT(*) FROM orders o WHERE NOT EXISTS
                 (SELECT 1 FROM order_items i WHERE i.order_id = o.order_id)''').fetchone()[0]
             if missing:

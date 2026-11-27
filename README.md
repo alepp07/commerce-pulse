@@ -62,7 +62,8 @@ python src/commerce_pulse/pipeline.py --input data/raw --output artifacts
 
 Raw data and generated reports are ignored by Git. The schema requires one
 currency per dataset. Use integer cents rather than floating-point prices.
-The loader rejects invalid input instead of silently dropping or repairing rows.
+The loader validates and inserts one CSV row at a time, so a whole input file
+doesn't need to fit in memory. An invalid row stops the import.
 Each successful run rebuilds the database; it does not append duplicate records.
 Failed validation preserves the existing database. Run one pipeline process at
 a time; the report files are generated after database validation and are not
