@@ -147,3 +147,17 @@ date filter. To analyse a specific purchase window, filter `ordered_at`
 inside the `purchases` CTE before grouping by customer. Record the window
 alongside the result. Orders outside that window do not contribute to the
 two-order threshold, so this does not measure lifetime repeat purchasing.
+
+## First observed and returning buyers by month
+
+`monthly_customers.csv` counts each buyer once per purchase month, using
+`ordered_at` on delivered orders. In the buyer's earliest such month in the
+input they count as `first_observed_customers`, even if they order twice that
+month. In each later month in which they buy, they count as
+`returning_customers`, even after a gap. The two counts add up to
+`purchasing_customers` for the month. Months without delivered orders are omitted.
+
+In the synthetic sample, both January buyers are first observed; the same two
+buy in February, so both are returning. First observed does not mean newly
+acquired: a buyer may have purchased before the input history starts. Do not
+sum monthly buyer counts to get distinct buyers across several months.

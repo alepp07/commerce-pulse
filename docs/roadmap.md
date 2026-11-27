@@ -3,7 +3,7 @@
 ## 1. Runnable foundation — implemented
 
 - Validated relational inputs and deterministic sample fixture
-- Four SQL analyses and order-level export
+- Five SQL analyses and order-level export
 - Regression tests and GitHub Actions workflow
 - Metric definitions and Power BI specification
 

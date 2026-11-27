@@ -16,7 +16,10 @@ COLUMNS = {
     'orders': ['order_id', 'customer_id', 'status', 'ordered_at', 'estimated_delivery_at', 'delivered_at'],
     'order_items': ['order_id', 'item_id', 'product_id', 'quantity', 'unit_price_cents'],
 }
-REPORTS = ['monthly_sales', 'category_sales', 'delivery_performance', 'repeat_customers']
+REPORTS = [
+    'monthly_sales', 'category_sales', 'delivery_performance',
+    'repeat_customers', 'monthly_customers',
+]
 
 
 def iter_rows(folder, table):

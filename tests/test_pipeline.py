@@ -67,6 +67,25 @@ class PipelineTests(unittest.TestCase):
             'repeat_customer_pct': '33.33',
         }])
 
+    def test_monthly_customers_distinguishes_first_observed_and_returning_buyers(self):
+        # C003 cancelled in February; their two April purchases arrive in May.
+        # C001 returns after a month without any orders.
+        orders = [
+            ('O007', 'C003', 'delivered', '2025-04-29', '2025-05-02', '2025-05-01'),
+            ('O008', 'C003', 'delivered', '2025-04-30', '2025-05-03', '2025-05-02'),
+            ('O009', 'C001', 'delivered', '2025-04-09', '2025-04-10', '2025-04-10'),
+        ]
+        with (self.source / 'orders.csv').open('a', newline='') as handle:
+            csv.writer(handle).writerows(orders)
+        with (self.source / 'order_items.csv').open('a', newline='') as handle:
+            csv.writer(handle).writerows((row[0], 1, 'P001', 1, 100) for row in orders)
+
+        rows = self.report('monthly_customers')
+        self.assertEqual([
+            (r['month'], int(r['purchasing_customers']), int(r['first_observed_customers']),
+             int(r['returning_customers'])) for r in rows
+        ], [('2025-01', 2, 2, 0), ('2025-02', 2, 0, 2), ('2025-04', 2, 1, 1)])
+
     def test_category_totals_and_units_match_delivered_sales(self):
         rows = self.report('category_sales')
         actual = [
@@ -274,7 +293,7 @@ class PipelineTests(unittest.TestCase):
         build_database(self.source, self.db)
         output = self.root / 'reports'
         export_reports(self.db, output)
-        for name in ('monthly_sales', 'category_sales', 'delivery_performance'):
+        for name in ('monthly_sales', 'category_sales', 'delivery_performance', 'monthly_customers'):
             with self.subTest(report=name):
                 with (output / f'{name}.csv').open(newline='') as handle:
                     reader = csv.DictReader(handle)
@@ -339,7 +358,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(
             {path.name for path in output.glob('*.csv')},
             {'monthly_sales.csv', 'category_sales.csv', 'delivery_performance.csv',
-             'repeat_customers.csv', 'order_summary.csv'},
+             'repeat_customers.csv', 'monthly_customers.csv', 'order_summary.csv'},
         )
 
     def test_cli_rejects_output_that_resolves_to_input_folder(self):

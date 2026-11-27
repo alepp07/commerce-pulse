@@ -3,16 +3,17 @@
 **E-commerce sales and delivery analytics with Python and SQL.**
 
 CommercePulse turns order-level CSV data into validated tables and repeatable
-reports answering four questions:
+reports answering five questions:
 
 - How do delivered order value and average order value change each month?
 - Which product categories contribute the most merchandise value?
 - Where are late deliveries most common?
 - What share of purchasing customers place more than one delivered order?
+- How many buyers each month are first seen in the data, and how many are returning?
 
 ## Current status
 
-Working foundation: a dependency-free Python loader, SQLite database, four SQL
+Working foundation: a dependency-free Python loader, SQLite database, five SQL
 analyses, CSV exports for Power BI, and automated tests. The included 20-row
 fixture is **synthetic demonstration data**, not evidence about a real business.
 A real-data adapter, PostgreSQL deployment, and a finished Power BI dashboard
@@ -41,6 +42,7 @@ The pipeline creates these local files in `artifacts/`:
 | `category_sales.csv` | Category value ranking and units sold |
 | `delivery_performance.csv` | Late delivery rate, average delivery time, and average days late among late deliveries by region |
 | `repeat_customers.csv` | Repeat purchase rate across the observation window |
+| `monthly_customers.csv` | Distinct buyers per purchase month, split into first observed and returning |
 | `order_summary.csv` | One row per order, ready for Power BI |
 | `run_manifest.json` | UTC generation time, input location, row counts, and sample-data flag |
 

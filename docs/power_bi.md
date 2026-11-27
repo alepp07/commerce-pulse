@@ -35,11 +35,14 @@ DIVIDE(
 | Page | Visuals | Question |
 |---|---|---|
 | Sales | Value/order-count/AOV cards, purchase-month trend, category value bar chart | What is driving sales value? |
-| Customers | Repeat-purchase KPI and region order counts | How broad is repeat purchasing? |
+| Customers | Repeat-purchase KPI and a monthly column chart of first observed and returning buyers | How many buyers come back in a later month? |
 | Delivery | Late-rate card, regional rates with order counts, delivery-days chart | Where should delivery operations investigate? |
 
 For category analysis, import `category_sales.csv` as a separate pre-aggregated
-summary. Likewise, repeat_customers.csv is an observation-window summary.
+summary. Likewise, `repeat_customers.csv` is an observation-window summary.
+For the customer chart, import `monthly_customers.csv` and stack
+`first_observed_customers` and `returning_customers` by `month`. Their combined
+height gives the distinct buyer count for that month.
 Do not connect these summaries to the order table as if they contained order
 rows. Their values will not respond to order-level date or region slicers.
 Label them **full dataset** or keep them on separate pages. A later star model
